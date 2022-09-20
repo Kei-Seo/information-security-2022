@@ -9,6 +9,8 @@
 from copy import deepcopy
 from ctypes import ArgumentError
 
+wheelDown = [0, 0, 0]
+
 # Enigma Components
 ETW = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -47,31 +49,36 @@ def next_alphabet(input):
 
 # Wheel Rotation
 def rotate_wheels():
-
-   # print(SETTINGS["WHEEL_POS"])
-
-    if SETTINGS["WHEELS"][0]["turn"] - SETTINGS["WHEEL_POS"][2] > 0 :
-      SETTINGS["WHEELS"][0]["wire"] = SETTINGS["WHEELS"][0]["wire"][1:] + SETTINGS["WHEELS"][0]["wire"][0]
-      SETTINGS["WHEEL_POS"][2] += 1
-    else:
-      SETTINGS["WHEEL_POS"][2] = 0
-      if SETTINGS["WHEELS"][1]["turn"] - SETTINGS["WHEEL_POS"][1] > 0 :
-        SETTINGS["WHEELS"][1]["wire"] = SETTINGS["WHEELS"][1]["wire"][1:] + SETTINGS["WHEELS"][1]["wire"][0]
-        SETTINGS["WHEEL_POS"][1] += 1
-      else:
-        SETTINGS["WHEEL_POS"][1] = 0
-        if SETTINGS["WHEELS"][2]["turn"] - SETTINGS["WHEEL_POS"][0] > 0 :
-          SETTINGS["WHEELS"][1]["wire"] = SETTINGS["WHEELS"][1]["wire"][1:] + SETTINGS["WHEELS"][1]["wire"][0]
-          SETTINGS["WHEEL_POS"][0] += 1
-        else:
-          SETTINGS["WHEEL_POS"][0] = 0
-        
-
+  SETTINGS["WHEELS"][2]["turn"] # 첫 번째 휠 
+  SETTINGS["WHEELS"][1]["turn"] # 두 번째 휠  
+  SETTINGS["WHEELS"][0]["turn"] # 세 번째 휠
   
-    
+  if SETTINGS["WHEEL_POS"][2] == SETTINGS["WHEELS"][2]['turn']:
+      
+    if SETTINGS["WHEEL_POS"][1] == SETTINGS["WHEELS"][1]['turn']:
+      SETTINGS["WHEEL_POS"][1] += 1 # 두 번째
+      SETTINGS["WHEEL_POS"][0] += 1 # 세 번째
+    else:
+      SETTINGS["WHEEL_POS"][1] += 1 # 두 번째 돌아감
+
+  elif SETTINGS["WHEEL_POS"][1] == SETTINGS["WHEELS"][1]['turn']:
+    SETTINGS["WHEEL_POS"][0] += 1
+
+  else:
+    SETTINGS["WHEEL_POS"][2] += 1 # 첫 번째 휠이 먼저 한 번 돈다
+
+  if SETTINGS["WHEEL_POS"][0] > 25 :
+    SETTINGS["WHEEL_POS"][0] %= 26
+
+  if SETTINGS["WHEEL_POS"][1] > 25 :
+    SETTINGS["WHEEL_POS"][1] %= 26
+
+  if SETTINGS["WHEEL_POS"][2] > 25 :
+    SETTINGS["WHEEL_POS"][2] %= 26
+
+   
     # Implement Wheel Rotation Logics
     
-    pass
 
 
 def apply_settings(ukw, wheel, wheel_pos, plugboard):
@@ -117,31 +124,37 @@ def pass_etw(input):
 def pass_wheels(input, reverse = False):
 
     if reverse == False:
-      # print(SETTINGS["WHEELS"])
-      # print(SETTINGS["WHEEL_POS"])
+     # print(SETTINGS["WHEELS"][2]["wire"])
+     # print(ord(input) - ord('A'))
+        
+      index_I = SETTINGS["WHEELS"][2]["wire"][(ord(input) - ord('A') + SETTINGS["WHEEL_POS"][2]) % 26]
+      #print(index_I)
       
-      # print(SETTINGS["WHEELS"][0]["wire"][ord(input) - ord('A')])
-      index_I = SETTINGS["WHEELS"][0]["wire"][ord(input) - ord('A')]
+      index_II = SETTINGS["WHEELS"][1]["wire"][(ord(index_I) - ord('A')  + SETTINGS["WHEEL_POS"][1] - SETTINGS["WHEEL_POS"][2]) % 26]
+      #print(index_II)
       
-      # print(SETTINGS["WHEELS"][1]["wire"][ord(index_I) - ord('A') - SETTINGS["WHEEL_POS"][2]])
-      index_II = SETTINGS["WHEELS"][1]["wire"][ord(index_I) - ord('A') - SETTINGS["WHEEL_POS"][2]]
-
-      # print(SETTINGS["WHEELS"][2]["wire"][ord(index_II) - ord('A') - SETTINGS["WHEEL_POS"][1]])
-      index_III = SETTINGS["WHEELS"][2]["wire"][ord(index_II) - ord('A') - SETTINGS["WHEEL_POS"][1]]
+      index_III = SETTINGS["WHEELS"][0]["wire"][(ord(index_II) - ord('A') + SETTINGS["WHEEL_POS"][0] - SETTINGS["WHEEL_POS"][1]) % 26]
+      #print(index_III)
+      
       return index_III
     else:
-      #print(SETTINGS["WHEELS"])
-      #print(input)
-      index_III = ETW[SETTINGS["WHEELS"][2]["wire"].find(input)]
-      #print(index_III)
-      index_II = ETW[SETTINGS["WHEELS"][1]["wire"].find(index_III)]
-      #print(index_II)
-      temp = ord(index_II) - ord('A') + SETTINGS["WHEEL_POS"][2]
-      if temp > 25:
-        temp -= 25
-      index_I = ETW[SETTINGS["WHEELS"][0]["wire"].find(ETW[temp])]
-      #print(index_I)
-      return index_I
+      # print(input)
+      
+      index_III = ETW[SETTINGS["WHEELS"][0]["wire"].find(SETTINGS["ETW"][(ord(input) - ord('A') + SETTINGS["WHEEL_POS"][0]) % 26])]
+      # print(index_III)
+      
+      temp_index_II = SETTINGS["ETW"][(ord(index_III) - ord('A') - SETTINGS["WHEEL_POS"][0] + SETTINGS["WHEEL_POS"][1]) % 26]
+      index_II = ETW[SETTINGS["WHEELS"][1]["wire"].find(temp_index_II)]
+      # print(index_II)
+
+      temp_index_I = SETTINGS["ETW"][(ord(index_II) - ord('A') - SETTINGS["WHEEL_POS"][1] + SETTINGS["WHEEL_POS"][2]) % 26]
+      index_I = ETW[SETTINGS["WHEELS"][2]["wire"].find(temp_index_I)]
+      # print(index_I)
+
+      temp_index = SETTINGS["ETW"][(ord(index_I) - ord('A') - SETTINGS["WHEEL_POS"][2]) % 26]
+      index = ETW[SETTINGS["ETW"].find(temp_index)]
+      
+      return index
       
     
     # Implement Wheel Logics
